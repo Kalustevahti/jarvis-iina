@@ -1,0 +1,31 @@
+/* PIN screen (HUD style). Standalone: also used by the small meeting window. */
+.pg-root { --acc: #4fe3ff; --acc2: #c8f8ff; --line: rgba(150, 230, 255, .18); --line2: rgba(150, 230, 255, .42); --red: #ff3d4a; --mut: #86aebd;
+  position: fixed; inset: 0; z-index: 9999; display: grid; place-items: center; overflow: auto; padding: 16px;
+  background: radial-gradient(80% 60% at 50% 40%, rgba(79, 227, 255, .08), transparent 70%), linear-gradient(var(--line) 1px, transparent 1px) 0 0/28px 28px, linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 28px, #030a15;
+  color: #e4faff; font-family: 'Chakra Petch', Bahnschrift, system-ui, sans-serif; -webkit-tap-highlight-color: transparent }
+.pg-root *, .pg-root *::before { box-sizing: border-box }
+.pg-box { width: min(100%, 320px); display: grid; justify-items: center; gap: 10px; padding: 22px 18px; border: 1px solid var(--line); background: rgba(3, 13, 27, .7);
+  clip-path: polygon(0 14px, 14px 0, 100% 0, 100% calc(100% - 14px), calc(100% - 14px) 100%, 0 100%) }
+.pg-core { width: 54px; height: 54px; border-radius: 50%; border: 2px solid var(--acc); box-shadow: 0 0 22px rgba(79, 227, 255, .45), inset 0 0 14px rgba(79, 227, 255, .4); position: relative; animation: pg-spin 12s linear infinite }
+.pg-core::before { content: ""; position: absolute; inset: 12px; border-radius: 50%; background: var(--acc2); box-shadow: 0 0 14px var(--acc) }
+.pg-core::after { content: ""; position: absolute; inset: -8px; border-radius: 50%; border: 1px dashed var(--line2) }
+.pg-brand { font: 700 24px/1 'Rajdhani', Bahnschrift, sans-serif; letter-spacing: .4em; margin-top: 6px }
+.pg-sub, .pg-foot { font: 11px/1 'Share Tech Mono', Consolas, monospace; letter-spacing: .22em; color: var(--mut) }
+.pg-dots { display: flex; gap: 10px; margin: 10px 0 2px; min-height: 16px }
+.pg-dots i { width: 14px; height: 14px; border: 1px solid var(--line2); transform: rotate(45deg) }
+.pg-dots i.on { background: var(--acc); border-color: var(--acc); box-shadow: 0 0 10px var(--acc) }
+.pg-dots.shake { animation: pg-shake .4s }
+.pg-msg { font: 12px/1.3 'Share Tech Mono', Consolas, monospace; letter-spacing: .16em; color: var(--acc2); text-align: center; min-height: 16px }
+.pg-msg.bad { color: var(--red) }
+.pg-note { font: 12px/1.4 'Share Tech Mono', Consolas, monospace; color: var(--mut); text-align: center; margin: 0 }
+.pg-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; margin-top: 6px }
+.pg-pad button { height: 58px; border: 1px solid var(--line2); background: rgba(8, 26, 46, .55); color: #e4faff; font: 600 24px/1 'Rajdhani', Bahnschrift, sans-serif; letter-spacing: .05em; cursor: pointer;
+  clip-path: polygon(0 8px, 8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%); transition: background .15s, transform .08s }
+.pg-pad button:active { background: var(--acc); color: #001018; transform: scale(.96) }
+.pg-pad button.ok { background: var(--acc); color: #001018; border-color: var(--acc); font-size: 18px; letter-spacing: .2em }
+.pg-pad button.bs { font-size: 20px }
+.pg-pad button:disabled { opacity: .3; cursor: default }
+@media (max-height: 560px) { .pg-pad button { height: 44px } .pg-core { display: none } }
+@keyframes pg-spin { to { transform: rotate(360deg) } }
+@keyframes pg-shake { 20%, 60% { transform: translateX(-8px) } 40%, 80% { transform: translateX(8px) } }
+@media (prefers-reduced-motion: reduce) { .pg-root * { animation: none !important } }

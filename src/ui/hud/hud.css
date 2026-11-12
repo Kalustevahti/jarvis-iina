@@ -1,0 +1,597 @@
+/* JARVIS 2.0 HUD (ported from suunnitelmat/hud2_prototyyppi.html). Scoped to .hud2 so the old desk styles
+   (used inside the embedded legacy views) keep working. */
+/* Fonts: one non-blocking <link> in index.html (9.11.2026) — a remote @import here held back the first paint. */
+
+.hud2 {
+  --bg: #030a15; --panel: rgba(3, 13, 27, .66); --panel2: rgba(8, 26, 46, .55);
+  --line: rgba(150, 230, 255, .18); --line2: rgba(150, 230, 255, .42);
+  --acc: #4fe3ff; --acc2: #c8f8ff; --ink: #e4faff; --mut: #86aebd;
+  --red: #ff3d4a; --amb: #ffb648; --ok: #5dffb0; --hot: #ff8a3d; --cold: #8fd8ff;
+  --glow: 0 0 18px rgba(79, 227, 255, .35);
+  --fd: 'Rajdhani', Bahnschrift, 'Arial Narrow', sans-serif;
+  --fb: 'Chakra Petch', Bahnschrift, system-ui, sans-serif;
+  --fm: 'Share Tech Mono', Consolas, ui-monospace, monospace;
+  --top: 60px; --dock: 80px;
+  --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+  position: fixed; inset: 0; overflow: hidden; background: var(--bg); color: var(--ink); font-family: var(--fb);
+  -webkit-tap-highlight-color: transparent; -webkit-font-smoothing: antialiased; transition: background-color .6s;
+  color-scheme: dark;
+}
+.hud2.work {
+  --bg: #050505; --panel: rgba(9, 9, 9, .74); --panel2: rgba(22, 22, 22, .6);
+  --line: rgba(255, 255, 255, .15); --line2: rgba(255, 255, 255, .38);
+  --acc: #f4f4f4; --acc2: #ffffff; --ink: #f5f5f5; --mut: #979797;
+  --glow: 0 0 14px rgba(255, 255, 255, .16);
+}
+.hud2::before { content: ""; position: fixed; inset: 0; z-index: 1; pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 45%, transparent 40%, rgba(0, 0, 0, .55) 100%),
+    linear-gradient(var(--line) 1px, transparent 1px) 0 0/28px 28px,
+    linear-gradient(90deg, var(--line) 1px, transparent 1px) 0 0/28px 28px;
+  opacity: .22 }
+.hud2 *, .hud2 *::before, .hud2 *::after { box-sizing: border-box }
+.hud2 button, .hud2 input, .hud2 select, .hud2 textarea { font: inherit; color: inherit }
+.hud2 button { background: none; border: 0; cursor: pointer; padding: 0; margin: 0 }
+.hud2 :focus-visible { outline: 1px solid var(--acc); outline-offset: 2px }
+.hud2 svg.i { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; flex: none }
+.hud2 [hidden] { display: none !important }
+.hud2 p, .hud2 ul, .hud2 h1, .hud2 h2 { margin: 0 }
+.hud2 ul { padding: 0 }
+
+.hud2 .globe { position: fixed; inset: 0; width: 100vw; height: 100vh; z-index: 0; display: block }
+
+/* ---------- header ---------- */
+.hud2 .top { position: fixed; left: 0; right: 0; top: 0; z-index: 20; height: calc(var(--top) + var(--sat)); padding: var(--sat) 14px 0;
+  display: flex; align-items: center; gap: 14px;
+  background: linear-gradient(180deg, rgba(2, 8, 16, .92), rgba(2, 8, 16, .55) 70%, transparent); border-bottom: 1px solid var(--line) }
+.hud2.work .top { background: linear-gradient(180deg, rgba(0, 0, 0, .94), rgba(0, 0, 0, .6) 70%, transparent) }
+.hud2 .brand { display: flex; align-items: center; gap: 10px; min-width: 0 }
+.hud2 .core { width: 30px; height: 30px; border-radius: 50%; position: relative; flex: none;
+  background: radial-gradient(circle, var(--acc2) 0 18%, var(--acc) 26%, transparent 30%), conic-gradient(from 0deg, var(--acc) 0 8%, transparent 8% 12.5%, var(--acc) 12.5% 20.5%, transparent 20.5% 25%, var(--acc) 25% 33%, transparent 33% 37.5%, var(--acc) 37.5% 45.5%, transparent 45.5% 50%, var(--acc) 50% 58%, transparent 58% 62.5%, var(--acc) 62.5% 70.5%, transparent 70.5% 75%, var(--acc) 75% 83%, transparent 83% 87.5%, var(--acc) 87.5% 95.5%, transparent 95.5%);
+  -webkit-mask: radial-gradient(circle, #000 0 30%, transparent 31% 52%, #000 53% 70%, transparent 71%); mask: radial-gradient(circle, #000 0 30%, transparent 31% 52%, #000 53% 70%, transparent 71%);
+  animation: hx-spin 14s linear infinite; filter: drop-shadow(0 0 6px var(--acc)) }
+.hud2 .brand b { font: 700 20px/1 var(--fd); letter-spacing: .32em }
+.hud2 .brand small { display: block; font: 11px/1 var(--fm); letter-spacing: .2em; color: var(--mut); margin-top: 3px }
+.hud2 .ttl { flex: 1; display: flex; align-items: center; gap: 10px; justify-content: center; min-width: 0 }
+.hud2 .ttl span { font: 600 15px/1 var(--fd); letter-spacing: .3em; color: var(--acc2); white-space: nowrap }
+.hud2 .ttl i { height: 1px; flex: 1; max-width: 160px; background: linear-gradient(90deg, transparent, var(--line2)) }
+.hud2 .ttl i:last-child { background: linear-gradient(90deg, var(--line2), transparent) }
+.hud2 .hr { display: flex; align-items: center; gap: 12px }
+.hud2 .clock { font: 15px/1 var(--fm); letter-spacing: .08em; color: var(--acc2) }
+.hud2 .link { display: flex; align-items: center; gap: 6px; font: 11px/1 var(--fm); letter-spacing: .12em; color: var(--mut); max-width: 260px; white-space: nowrap; overflow: hidden }
+.hud2 .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--ok); box-shadow: 0 0 8px var(--ok); flex: none }
+.hud2 .dot.a { background: var(--amb); box-shadow: 0 0 8px var(--amb) }
+.hud2 .dot.r { background: var(--red); box-shadow: 0 0 8px var(--red) }
+.hud2 .modesw { display: flex; border: 1px solid var(--line2); height: 34px }
+.hud2 .modesw button { padding: 0 12px; font: 600 13px/1 var(--fd); letter-spacing: .2em; color: var(--mut); transition: .25s }
+.hud2 .modesw button[aria-pressed=true] { background: var(--acc); color: #001018 }
+.hud2.work .modesw button[aria-pressed=true] { background: var(--red); color: #fff }
+
+/* ---------- pages ---------- */
+.hud2 .pages { position: fixed; inset: 0; z-index: 5; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; overscroll-behavior-x: contain }
+.hud2 .pages::-webkit-scrollbar { display: none }
+.hud2 .pages.drag { scroll-snap-type: none; cursor: grabbing }
+.hud2 .page { flex: 0 0 100%; width: 100%; height: 100%; scroll-snap-align: start; scroll-snap-stop: always; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; scrollbar-color: var(--line2) transparent;
+  padding: calc(var(--top) + var(--sat) + 14px) 14px calc(var(--dock) + var(--sab) + 26px) }
+.hud2 .pgi-wrap { max-width: 1240px; margin: 0 auto; transform-origin: 50% 35%; will-change: transform, opacity }
+.hud2 .pgi { display: grid; gap: 12px; align-items: start; grid-template-columns: minmax(0, 1fr) }
+
+/* ---------- panels ---------- */
+.hud2 .pnl { position: relative; background: var(--panel); border: 1px solid var(--line); padding: 14px; min-width: 0; contain: content;
+  clip-path: polygon(0 12px, 12px 0, 100% 0, 100% calc(100% - 12px), calc(100% - 12px) 100%, 0 100%) }
+.hud2 .pnl::before { content: ""; position: absolute; inset: 0; pointer-events: none;
+  background:
+    linear-gradient(var(--acc), var(--acc)) right top/18px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) right top/1px 18px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) left bottom/18px 1px no-repeat,
+    linear-gradient(var(--acc), var(--acc)) left bottom/1px 18px no-repeat; opacity: .75 }
+.hud2 .pnl::after { content: ""; position: absolute; left: 0; top: 0; width: 17px; height: 1px; background: var(--line2); transform-origin: 0 0; transform: translate(0, 12px) rotate(-45deg) }
+.hud2 .page.enter .pnl { animation: hx-pin .6s cubic-bezier(.2, .8, .2, 1) both; animation-delay: calc(var(--i, 0) * 55ms) }
+.hud2 .ph { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; font: 12px/1 var(--fm); letter-spacing: .16em; text-transform: uppercase; color: var(--mut) }
+.hud2 .ph b { color: var(--acc2); font-weight: 400 }
+.hud2 .ph .bar { flex: 1; height: 5px; background: repeating-linear-gradient(90deg, var(--line2) 0 2px, transparent 2px 6px); opacity: .55; min-width: 10px }
+.hud2 .live { color: var(--red); display: flex; align-items: center; gap: 5px }
+.hud2 .live::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--red); animation: hx-blink 1.2s steps(2) infinite }
+.hud2 .sub { font: 12px/1.35 var(--fm); color: var(--mut); letter-spacing: .04em }
+.hud2 .big { font: 700 34px/1 var(--fd); letter-spacing: .02em }
+.hud2 .lbl { font: 11px/1 var(--fm); letter-spacing: .16em; color: var(--mut); text-transform: uppercase; margin: 14px 0 8px; display: flex; justify-content: space-between; gap: 8px }
+.hud2 .lbl b { color: var(--acc2); font-weight: 400 }
+.hud2 .row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap }
+.hud2 .note { font: 11px/1.45 var(--fm); color: var(--mut); margin-top: 12px; border-left: 2px solid var(--line2); padding-left: 8px }
+.hud2 .note.warn { border-left-color: var(--amb); color: #ffd9a0 }
+
+/* buttons */
+.hud2 .btn { min-height: 44px; padding: 0 14px; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 1px solid var(--line2); background: var(--panel2);
+  font: 600 14px/1 var(--fd); letter-spacing: .14em; text-transform: uppercase; transition: background .2s, border-color .2s, transform .1s; position: relative; overflow: hidden; text-decoration: none; color: var(--ink) }
+.hud2 .btn:hover { border-color: var(--acc) }
+.hud2 .btn:active { transform: scale(.97) }
+.hud2 .btn.pri { background: var(--acc); color: #001018; border-color: var(--acc) }
+.hud2.work .btn.pri { background: var(--red); border-color: var(--red); color: #fff }
+.hud2 .btn.red { border-color: var(--red); color: #ffd3d6 }
+.hud2 .btn[disabled] { opacity: .35; pointer-events: none }
+.hud2 .btn.sq { width: 44px; padding: 0 }
+.hud2 .btn.sm { min-height: 36px; padding: 0 10px; font-size: 12px }
+.hud2 .btn.wide { width: 100% }
+.hud2 .tog { width: 52px; height: 30px; border: 1px solid var(--line2); position: relative; flex: none; transition: .25s }
+.hud2 .tog::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; background: var(--mut); transition: .25s; clip-path: polygon(0 4px, 4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%) }
+.hud2 .tog[aria-pressed=true] { border-color: var(--acc); background: rgba(79, 227, 255, .12) }
+.hud2 .tog[aria-pressed=true]::after { left: 25px; background: var(--acc); box-shadow: var(--glow) }
+.hud2 .tog[disabled] { opacity: .35; pointer-events: none }
+.hud2.work .tog[aria-pressed=true] { border-color: var(--red); background: rgba(255, 61, 74, .14) }
+.hud2.work .tog[aria-pressed=true]::after { background: var(--red) }
+.hud2 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 1px solid var(--line2) }
+.hud2 .seg button { min-height: 44px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;
+  font: 600 12px/1 var(--fd); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); border-right: 1px solid var(--line); transition: .2s }
+.hud2 .seg button:last-child { border-right: 0 }
+.hud2 .seg button[aria-pressed=true] { background: rgba(79, 227, 255, .16); color: var(--acc2); box-shadow: inset 0 -2px 0 var(--acc) }
+.hud2.work .seg button[aria-pressed=true] { background: rgba(255, 255, 255, .08); box-shadow: inset 0 -2px 0 var(--red) }
+.hud2 .chips { display: flex; gap: 8px; flex-wrap: wrap }
+.hud2 .chip { min-height: 38px; padding: 0 12px; border: 1px solid var(--line2); font: 600 13px/1 var(--fd); letter-spacing: .1em; text-transform: uppercase; color: var(--mut); display: inline-flex; align-items: center; gap: 6px }
+.hud2 .chip[aria-pressed=true] { color: var(--acc2); border-color: var(--acc); background: rgba(79, 227, 255, .12) }
+.hud2 .chip[disabled] { opacity: .35 }
+
+/* range */
+.hud2 .rng { -webkit-appearance: none; appearance: none; width: 100%; height: 32px; background: transparent; touch-action: none; cursor: pointer; margin: 0 }
+.hud2 .rng::-webkit-slider-runnable-track { height: 8px; border: 1px solid var(--line2);
+  background: linear-gradient(var(--acc), var(--acc)) 0 0/var(--p, 50%) 100% no-repeat, repeating-linear-gradient(90deg, var(--line2) 0 1px, transparent 1px 10%), rgba(255, 255, 255, .03) }
+.hud2 .rng::-moz-range-track { height: 8px; border: 1px solid var(--line2); background: repeating-linear-gradient(90deg, var(--line2) 0 1px, transparent 1px 10%), rgba(255, 255, 255, .03) }
+.hud2 .rng::-moz-range-progress { height: 8px; background: var(--acc) }
+.hud2 .rng::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 28px; margin-top: -11px; background: var(--bg); border: 2px solid var(--acc2); box-shadow: var(--glow) }
+.hud2 .rng::-moz-range-thumb { width: 12px; height: 26px; border-radius: 0; background: var(--bg); border: 2px solid var(--acc2) }
+.hud2 .rng:disabled { opacity: .35 }
+.hud2 .rng.ct::-webkit-slider-runnable-track { background: linear-gradient(90deg, #ffad55, #ffe7c4 45%, #eef6ff 70%, #b9dcff) }
+.hud2 .rng.ct::-moz-range-track { background: linear-gradient(90deg, #ffad55, #ffe7c4 45%, #eef6ff 70%, #b9dcff) }
+.hud2 .rng.ct::-moz-range-progress { background: transparent }
+.hud2 .rng.hue::-webkit-slider-runnable-track { background: linear-gradient(90deg, hsl(0 90% 60%), hsl(60 90% 60%), hsl(120 90% 60%), hsl(180 90% 60%), hsl(240 90% 65%), hsl(300 90% 60%), hsl(360 90% 60%)) }
+.hud2 .rng.hue::-moz-range-track { background: linear-gradient(90deg, hsl(0 90% 60%), hsl(60 90% 60%), hsl(120 90% 60%), hsl(180 90% 60%), hsl(240 90% 65%), hsl(300 90% 60%), hsl(360 90% 60%)) }
+.hud2 .rng.hue::-moz-range-progress { background: transparent }
+
+/* dial */
+.hud2 .dial { position: relative; width: min(100%, 270px); aspect-ratio: 1; margin: 4px auto 0 }
+.hud2 .dial.sm { width: min(100%, 190px) }
+.hud2 .dial svg { width: 100%; height: 100%; touch-action: none; cursor: grab; overflow: visible; display: block }
+.hud2 .dial svg:active { cursor: grabbing }
+.hud2 .dial.dis { opacity: .4; pointer-events: none }
+.hud2 .dl-track { fill: none; stroke: rgba(255, 255, 255, .06); stroke-width: 9 }
+.hud2 .dl-val { fill: none; stroke: var(--acc); stroke-width: 9; transition: stroke .4s }
+.hud2 .dl-glow { fill: none; stroke: var(--acc); stroke-width: 24; opacity: .12 }
+.hud2 .dl-tk { stroke: var(--line2); stroke-width: 1.2 }
+.hud2 .dl-tk.mj { stroke: var(--acc2); stroke-width: 1.6; opacity: .8 }
+.hud2 .dl-tl { fill: var(--mut); font: 10px var(--fm); text-anchor: middle; dominant-baseline: middle }
+.hud2 .dl-knob { fill: var(--bg); stroke: var(--acc2); stroke-width: 2.5 }
+.hud2 .dl-in { fill: none; stroke: var(--line); stroke-width: 1 }
+/* Static: a rotating element inside an SVG repaints the whole dial every frame (no compositor path for SVG children). */
+.hud2 .dl-spin { fill: none; stroke: var(--line2); stroke-width: 1; stroke-dasharray: 1 7 }
+.hud2 .dl-c { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none }
+.hud2 .dl-v { font: 700 64px/1 var(--fd); letter-spacing: -.01em; text-shadow: var(--glow); font-variant-numeric: tabular-nums }
+.hud2 .dial.sm .dl-v { font-size: 44px }
+.hud2 .dl-u { font: 12px/1 var(--fm); color: var(--mut); letter-spacing: .22em; margin-top: 4px }
+.hud2 .dl-s { font: 11px/1 var(--fm); color: var(--acc); letter-spacing: .12em; height: 12px; margin-top: 8px }
+.hud2 .dl-b { position: absolute; bottom: 2%; width: 46px; height: 46px; border: 1px solid var(--line2); background: var(--panel2); font: 600 24px/1 var(--fd); display: grid; place-items: center }
+.hud2 .dl-b:active { background: var(--acc); color: #001018 }
+.hud2 .dl-m { left: 2% } .hud2 .dl-p { right: 2% }
+.hud2 .dial.off .dl-val, .hud2 .dial.off .dl-glow { stroke: var(--mut); opacity: .35 }
+
+/* mini gauges */
+.hud2 .mgs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px }
+.hud2 .mg { position: relative; aspect-ratio: 1; display: block; max-width: 150px; width: 100%; margin: 0 auto; text-align: center }
+.hud2 .mg svg { width: 100%; height: 100%; display: block }
+.hud2 .mg .t { fill: none; stroke: rgba(255, 255, 255, .07); stroke-width: 5 }
+.hud2 .mg .v { fill: none; stroke: var(--acc); stroke-width: 5; transition: stroke-dasharray .7s cubic-bezier(.2, .8, .2, 1) }
+.hud2 .mg .k { stroke: var(--line2); stroke-width: 1 }
+.hud2 .mg .c { position: absolute; inset: 0; display: grid; place-content: center }
+.hud2 .mg .c b { font: 700 clamp(18px, 5.6vw, 30px)/1 var(--fd); font-variant-numeric: tabular-nums }
+.hud2 .mg .c small { font: 9px/1 var(--fm); letter-spacing: .14em; color: var(--mut); margin-top: 3px }
+.hud2 .mg .c em { font-style: normal; font: 10px/1 var(--fm); color: var(--acc); margin-top: 3px }
+
+/* koti */
+.hud2 .hero { position: relative; height: max(250px, 40vh); pointer-events: none }
+.hud2 .hl { position: absolute; font: 10px/1.3 var(--fm); letter-spacing: .16em; color: var(--mut) }
+.hud2 .hl b { display: block; color: var(--acc2); font-weight: 400; font-size: 12px }
+.hud2 .hl.tl { left: 0; top: 0 } .hud2 .hl.tr { right: 0; top: 0; text-align: right } .hud2 .hl.bl { left: 0; bottom: 0 } .hud2 .hl.br { right: 0; bottom: 0; text-align: right }
+.hud2 .hl::before { content: ""; display: block; width: 26px; height: 1px; background: var(--acc); margin-bottom: 6px }
+.hud2 .hl.tr::before, .hud2 .hl.br::before { margin-left: auto }
+.hud2 .sumtxt { font: 500 17px/1.45 var(--fb); color: var(--ink) }
+.hud2 .sumtxt em { font-style: normal; color: var(--acc2) }
+.hud2 .col { display: grid; gap: 12px; align-content: start; min-width: 0 }
+.hud2 .rts, .hud2 .tasks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.hud2 .rt { position: relative; border: 1px solid var(--line2); background: var(--panel2); padding: 12px; text-align: left; min-height: 86px; display: flex; flex-direction: column; gap: 6px; overflow: hidden }
+.hud2 .rt b { font: 700 17px/1 var(--fd); letter-spacing: .08em; text-transform: uppercase; display: flex; align-items: center; gap: 8px }
+.hud2 .rt small { font: 11px/1.3 var(--fm); color: var(--mut) }
+.hud2 .rt .pg { position: absolute; left: 0; bottom: 0; height: 2px; width: 100%; transform: scaleX(0); transform-origin: 0 50%; background: var(--acc); box-shadow: var(--glow) }
+.hud2 .rt.run { border-color: var(--acc) }
+.hud2 .rt.run .pg { animation: hx-prog 40s cubic-bezier(.1, .7, .2, 1) forwards }
+.hud2 .rt[disabled] { opacity: .45 }
+.hud2 .undo { display: flex; margin-top: 10px; align-items: center; gap: 10px; border: 1px solid var(--amb); padding: 8px 10px; color: var(--amb); font: 12px/1.2 var(--fm) }
+.hud2 .undo .btn { min-height: 36px; border-color: var(--amb); color: var(--amb); margin-left: auto }
+.hud2 .tiles { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.hud2 .tile { display: flex; align-items: stretch; border: 1px solid var(--line); background: var(--panel2); min-height: 64px; min-width: 0 }
+.hud2 .tile .go { flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px; padding: 10px; text-align: left; position: relative }
+.hud2 .tile .go svg { width: 22px; height: 22px; color: var(--acc) }
+.hud2 .tile .go b { display: block; font: 700 15px/1.1 var(--fd); letter-spacing: .06em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.hud2 .tile .go small { display: block; font: 11px/1.2 var(--fm); color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 3px }
+.hud2 .tile .more { position: absolute; right: 6px; top: 5px; font: 8px/1 var(--fm); letter-spacing: .12em; color: var(--mut); opacity: .7 }
+.hud2 .tile .pw { width: 52px; flex: none; border-left: 1px solid var(--line); display: grid; place-items: center; color: var(--mut) }
+.hud2 .tile .pw[aria-pressed=true] { color: var(--acc); background: rgba(79, 227, 255, .1) }
+.hud2 .tile .pw[disabled] { opacity: .3 }
+.hud2 .tile.on { border-color: var(--line2) }
+.hud2 .log { list-style: none; display: grid; gap: 0; max-height: 220px; overflow: auto }
+.hud2 .log li { display: grid; grid-template-columns: 62px 1fr; gap: 8px; padding: 7px 0; border-bottom: 1px dashed var(--line); font: 12px/1.3 var(--fm) }
+.hud2 .log li.empty { grid-template-columns: 1fr; color: var(--mut) }
+.hud2 .log li time { color: var(--mut) }
+.hud2 .log li:first-child { color: var(--acc2) }
+
+/* ilma */
+.hud2 .presets { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.hud2 .presets .btn { padding: 0 4px; font-size: 13px }
+.hud2 .lamps { display: grid; gap: 8px }
+.hud2 .lamp { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; align-items: center; border: 1px solid var(--line); padding: 8px 10px; background: var(--panel2) }
+.hud2 .lamp b { font: 600 14px/1 var(--fd); letter-spacing: .06em; text-transform: uppercase }
+.hud2 .lamp b small { color: var(--amb); font-size: 11px }
+.hud2 .lamp .rng { grid-column: 1/-1; height: 26px }
+.hud2 .lamp.off { opacity: .55 }
+.hud2 .sw { width: 100%; aspect-ratio: 1; border: 1px solid var(--line2); position: relative }
+.hud2 .sw:active { outline: 2px solid var(--acc2); outline-offset: 2px }
+.hud2 .sws { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px }
+
+/* media */
+.hud2 .np { display: grid; grid-template-columns: auto 1fr; gap: 14px; align-items: center }
+.hud2 .np .art { width: 84px; height: 84px; border: 1px solid var(--line2); display: grid; place-items: center; position: relative; overflow: hidden; background: repeating-linear-gradient(45deg, rgba(79, 227, 255, .08) 0 6px, transparent 6px 12px) }
+.hud2 .np .art b { font: 700 13px/1.1 var(--fd); letter-spacing: .1em; text-align: center; padding: 4px }
+.hud2 .np-title { font-size: 24px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.hud2 .transport { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 8px; margin-top: 12px }
+.hud2 .transport .btn { padding: 0 }
+.hud2 .apps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px }
+.hud2 .app { min-height: 52px; border: 1px solid var(--line); background: var(--panel2); font: 700 14px/1 var(--fd); letter-spacing: .1em; text-transform: uppercase; display: flex; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 0 4px }
+.hud2 .app[aria-pressed=true] { border-color: var(--acc); color: var(--acc2); background: rgba(79, 227, 255, .12) }
+.hud2 .app[disabled] { opacity: .35 }
+.hud2 .offcover-soft { opacity: .78 }
+.hud2 .dpad { width: min(100%, 250px); aspect-ratio: 1; margin: 0 auto; display: block; touch-action: manipulation }
+.hud2 .dpad .s { fill: var(--panel2); stroke: var(--line2); stroke-width: 1; cursor: pointer; transition: fill .15s }
+.hud2 .dpad .s:hover { stroke: var(--acc) }
+.hud2 .dpad .s.hit { fill: rgba(79, 227, 255, .35) }
+.hud2 .dpad .ok { fill: rgba(79, 227, 255, .12); stroke: var(--acc); stroke-width: 1.5; cursor: pointer }
+.hud2 .dpad .ok.hit { fill: var(--acc) }
+.hud2 .dpad text { fill: var(--acc2); font: 600 13px var(--fd); letter-spacing: .15em; text-anchor: middle; dominant-baseline: middle; pointer-events: none }
+.hud2 .dpad path.ar { fill: none; stroke: var(--acc2); stroke-width: 2; pointer-events: none }
+.hud2 .keys { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 12px }
+.hud2 .keys .btn { padding: 0 4px; font-size: 12px }
+.hud2 .rock { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 8px }
+.hud2 .rock.one { grid-template-columns: 1fr; margin-top: 0 }
+.hud2 .rock > div { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; border: 1px solid var(--line2) }
+.hud2 .rock > div span { text-align: center; font: 11px/1 var(--fm); letter-spacing: .16em; color: var(--mut) }
+.hud2 .rock .btn { border: 0; min-height: 44px; width: 44px; padding: 0; font-size: 20px }
+.hud2 .inp { display: flex; border: 1px solid var(--line2); background: rgba(0, 0, 0, .25) }
+.hud2 .inp input { flex: 1; min-width: 0; background: none; border: 0; outline: 0; padding: 0 12px; height: 44px; font: 15px var(--fb) }
+.hud2 .inp input::placeholder { color: var(--mut) }
+.hud2 .inp .btn { border: 0; border-left: 1px solid var(--line2) }
+.hud2 .vacrow { display: grid; grid-template-columns: 110px 1fr; gap: 12px; align-items: center }
+.hud2 .vacbtns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px }
+.hud2 .vacbtns .btn.pri { grid-column: 1 / -1 }
+
+/* turva */
+.hud2 .camf { position: relative; aspect-ratio: 16/9; overflow: hidden; border: 1px solid var(--line2); background: #01060c }
+.hud2 .camf img { width: 100%; height: 100%; display: block; object-fit: contain; background: #000 }
+.hud2 .camf .camoff { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 6px; background: repeating-linear-gradient(-45deg, #020a14 0 10px, #06182a 10px 20px); font: 600 16px/1.2 var(--fd); letter-spacing: .2em; padding: 10px }
+.hud2.work .camf .camoff { background: repeating-linear-gradient(-45deg, #070707 0 10px, #141414 10px 20px) }
+.hud2 .camf .camoff small { font: 11px var(--fm); color: var(--mut); letter-spacing: .06em }
+.hud2 .camf .br { position: absolute; width: 22px; height: 22px; border: 2px solid var(--acc); pointer-events: none }
+.hud2 .camf .b1 { left: 8px; top: 8px; border-right: 0; border-bottom: 0 } .hud2 .camf .b2 { right: 8px; top: 8px; border-left: 0; border-bottom: 0 }
+.hud2 .camf .b3 { left: 8px; bottom: 8px; border-right: 0; border-top: 0 } .hud2 .camf .b4 { right: 8px; bottom: 8px; border-left: 0; border-top: 0 }
+.hud2 .camf .ov { position: absolute; left: 14px; right: 14px; top: 12px; display: flex; justify-content: space-between; font: 11px/1 var(--fm); letter-spacing: .14em; color: var(--acc2); pointer-events: none }
+.hud2 .camf .ov .rec { color: var(--red) }
+.hud2 .camf .xh { position: absolute; left: 50%; top: 50%; width: 46px; height: 46px; margin: -23px; border: 1px solid rgba(200, 248, 255, .5); border-radius: 50%; pointer-events: none }
+.hud2 .camf .xh::before, .hud2 .camf .xh::after { content: ""; position: absolute; background: rgba(200, 248, 255, .5) }
+.hud2 .camf .xh::before { left: 50%; top: -10px; bottom: -10px; width: 1px } .hud2 .camf .xh::after { top: 50%; left: -10px; right: -10px; height: 1px }
+.hud2 .camf .scan { position: absolute; left: 0; right: 0; height: 30%; top: 0; transform: translateY(-100%); background: linear-gradient(180deg, transparent, rgba(79, 227, 255, .12), transparent); animation: hx-scan 3.2s linear infinite; pointer-events: none; will-change: transform }
+.hud2 .camctl { display: grid; grid-template-columns: 120px 1fr; gap: 14px; margin-top: 12px; align-items: center }
+.hud2 .joy { width: 120px; height: 120px; border-radius: 50%; border: 1px solid var(--line2); position: relative; touch-action: none; background: radial-gradient(circle, rgba(79, 227, 255, .08), transparent 70%) }
+.hud2 .joy.dis { opacity: .35; pointer-events: none }
+.hud2 .joy::before { content: ""; position: absolute; inset: 18px; border-radius: 50%; border: 1px dashed var(--line) }
+.hud2 .joy i { position: absolute; left: 50%; top: 50%; width: 44px; height: 44px; margin: -22px; border-radius: 50%; background: var(--panel2); border: 2px solid var(--acc); box-shadow: var(--glow) }
+.hud2 .joy span { position: absolute; font: 9px var(--fm); color: var(--mut); letter-spacing: .1em }
+
+/* system */
+.hud2 .svcs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.hud2 .svc { border: 1px solid var(--line); background: var(--panel2); padding: 10px; text-align: left; display: grid; grid-template-columns: auto 1fr; gap: 4px 8px; align-items: center; min-width: 0 }
+.hud2 .svc b { font: 600 14px/1 var(--fd); letter-spacing: .08em; text-transform: uppercase }
+.hud2 .svc small { grid-column: 1/-1; font: 11px/1.25 var(--fm); color: var(--mut); overflow-wrap: anywhere }
+.hud2 .list { list-style: none; display: grid; gap: 8px }
+.hud2 .list li { border: 1px solid var(--line); background: var(--panel2); padding: 10px; display: grid; grid-template-columns: 1fr auto; gap: 6px 10px; align-items: center }
+.hud2 .list li b { font: 600 15px/1.15 var(--fd); letter-spacing: .04em; min-width: 0; overflow-wrap: anywhere }
+.hud2 .list li small { grid-column: 1/-1; font: 11px/1.35 var(--fm); color: var(--mut) }
+.hud2 .st { font: 10px/1 var(--fm); letter-spacing: .12em; padding: 4px 6px; border: 1px solid currentColor; white-space: nowrap }
+.hud2 .st.ok { color: var(--ok) } .hud2 .st.a { color: var(--amb) } .hud2 .st.r { color: var(--red) } .hud2 .st.c { color: var(--acc) }
+.hud2 .setgrid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) }
+
+/* työ */
+.hud2 .bigclock { font: 700 clamp(64px, 20vw, 128px)/.9 var(--fd); letter-spacing: -.02em; font-variant-numeric: tabular-nums; margin-top: 6px }
+.hud2 .bigclock span { color: var(--red) }
+.hud2 .cd { display: flex; align-items: baseline; gap: 10px; margin-top: 10px; flex-wrap: wrap }
+.hud2 .cd b { font: 700 26px/1 var(--fd); color: var(--red) }
+.hud2 .tline { list-style: none; position: relative; display: grid; gap: 0; padding-left: 18px }
+.hud2 .tline::before { content: ""; position: absolute; left: 5px; top: 6px; bottom: 6px; width: 1px; background: var(--line2) }
+.hud2 .tline li { position: relative; padding: 8px 0 12px; display: grid; grid-template-columns: 56px 1fr auto; gap: 8px; align-items: start }
+.hud2 .tline li::before { content: ""; position: absolute; left: -17px; top: 12px; width: 9px; height: 9px; border: 1px solid var(--acc); background: var(--bg) }
+.hud2 .tline li.past { opacity: .45 }
+.hud2 .tline li.next::before { background: var(--red); border-color: var(--red); box-shadow: 0 0 10px var(--red) }
+.hud2 .tline time { font: 14px/1 var(--fm); color: var(--acc2); padding-top: 2px }
+.hud2 .tline b { font: 600 16px/1.15 var(--fd); letter-spacing: .04em; display: block }
+.hud2 .tline small { font: 11px var(--fm); color: var(--mut) }
+.hud2 .q li { grid-template-columns: auto 1fr; }
+.hud2 .q li > .row { grid-column: 1/-1; justify-content: flex-end }
+.hud2 .pipe { display: grid; gap: 8px; align-items: end; height: 150px; margin-top: 4px }
+.hud2 .pipe div { display: flex; flex-direction: column; justify-content: flex-end; align-items: stretch; height: 100%; gap: 6px; text-align: center; min-width: 0 }
+.hud2 .pipe i { display: block; background: linear-gradient(180deg, var(--acc), rgba(255, 255, 255, .15)); min-height: 4px; transition: height .6s cubic-bezier(.2, .8, .2, 1) }
+.hud2 .pipe i.top { background: linear-gradient(180deg, var(--red), rgba(255, 61, 74, .2)) }
+.hud2 .pipe b { font: 700 20px/1 var(--fd) }
+.hud2 .pipe small { font: 10px/1.2 var(--fm); color: var(--mut); letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere }
+/* liidit: seller chips, open total, pipeline rows with €/kk, deal cards */
+.hud2 .sellers { margin-bottom: 12px }
+.hud2 .sellers .chip em { font-style: normal; font-family: var(--fm); color: var(--acc2); opacity: .8 }
+.hud2 .openrow { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 10px 0 12px }
+.hud2 .openrow .n { font: 700 30px/1 var(--fd); color: var(--red) }
+.hud2 .money { display: inline-flex; flex-direction: column; gap: 3px; text-align: right; min-width: 0 }
+.hud2 .money b { font: 700 16px/1 var(--fd); letter-spacing: .02em; white-space: nowrap }
+.hud2 .money.big { text-align: left }
+.hud2 .money.big b { font-size: 24px }
+.hud2 .money small { font: 10px/1.2 var(--fm); color: var(--mut); letter-spacing: .04em }
+.hud2 .pipe2 { list-style: none; display: grid; gap: 6px }
+.hud2 .pipe2 button { position: relative; width: 100%; min-height: 48px; display: grid; grid-template-columns: minmax(0, 1fr) 40px minmax(0, auto); gap: 10px; align-items: center;
+  padding: 6px 10px 10px; border: 1px solid var(--line); background: var(--panel2); text-align: left }
+.hud2 .pipe2 button[aria-pressed=true] { border-color: var(--red) }
+.hud2 .pipe2 button[disabled] { opacity: .45; cursor: default }
+.hud2 .pipe2 .nm { font: 600 14px/1.15 var(--fd); letter-spacing: .06em; text-transform: uppercase; overflow-wrap: anywhere }
+.hud2 .pipe2 .n { font: 700 20px/1 var(--fd); text-align: right }
+.hud2 .pipe2 i { position: absolute; left: 0; bottom: 0; height: 3px; background: var(--acc); opacity: .7; transition: width .6s cubic-bezier(.2, .8, .2, 1) }
+.hud2 .pipe2 i.won { background: var(--ok) }
+.hud2 .pipe2 i.lost { background: var(--mut) }
+.hud2 .offseg { margin-top: 10px }
+.hud2 .deals { margin-top: 10px }
+.hud2 .deals li { grid-template-columns: minmax(0, 1fr) auto }
+.hud2 .deals .val { grid-column: 1/-1; font: 13px/1.3 var(--fm); color: var(--ink) }
+.hud2 .deals .val.est { color: var(--amb) }
+.hud2 .deals .val.none { color: var(--mut) }
+.hud2 .deals .row { grid-column: 1/-1; justify-content: space-between }
+/* Aamupaketti: luonnos luettavana tekstinä, napit alle. */
+.hud2 .morning .draft { grid-column: 1/-1; margin: 2px 0 0; padding: 8px 10px; border-left: 2px solid var(--acc2); background: var(--panel); font: 13px/1.45 var(--fm); color: var(--ink); white-space: pre-wrap; overflow-wrap: anywhere }
+.hud2 .morning .draft small { display: block; margin-bottom: 4px; font: 600 10px/1 var(--fd); letter-spacing: .12em; color: var(--mut) }
+.hud2 .morning .row { flex-wrap: wrap; gap: 6px }
+.hud2 .who { font: 600 12px/1 var(--fd); letter-spacing: .12em; text-transform: uppercase; padding: 5px 8px; border: 1px solid var(--line2); color: var(--acc2) }
+.hud2 .diff { display: inline-flex; gap: 4px; vertical-align: middle }
+.hud2 .diff button { width: 22px; height: 22px; border: 1px solid var(--line2) }
+.hud2 .diff button[aria-pressed=true] { background: var(--red); border-color: var(--red) }
+
+/* näyttö (remote screen) */
+.hud2 .g-screen { grid-template-columns: minmax(0, 1fr) }
+.hud2 .scr-frame { position: relative; border: 1px solid var(--line2); background: #000 }
+.hud2 .scr-stage { position: relative; aspect-ratio: 16/9; max-height: calc(100vh - var(--top) - var(--dock) - 200px); min-height: 200px; width: 100%; overflow: hidden; touch-action: none; user-select: none; -webkit-user-select: none; cursor: crosshair }
+.hud2 .scr-view { position: absolute; inset: 0; transform-origin: 50% 50%; will-change: transform }
+.hud2 .scr-view img { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none; -webkit-user-drag: none }
+.hud2 .scr-view img.none { visibility: hidden }
+.hud2 .scr-msg { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; padding: 16px; font: 600 15px/1.3 var(--fd); letter-spacing: .14em; color: var(--acc2); background: repeating-linear-gradient(-45deg, rgba(2, 10, 20, .85) 0 10px, rgba(6, 24, 42, .85) 10px 20px) }
+.hud2.work .scr-msg { background: repeating-linear-gradient(-45deg, rgba(7, 7, 7, .9) 0 10px, rgba(20, 20, 20, .9) 10px 20px) }
+.hud2 .scr-stage .br { position: absolute; width: 22px; height: 22px; border: 2px solid var(--acc); pointer-events: none }
+.hud2 .scr-stage .b1 { left: 6px; top: 6px; border-right: 0; border-bottom: 0 } .hud2 .scr-stage .b2 { right: 6px; top: 6px; border-left: 0; border-bottom: 0 }
+.hud2 .scr-stage .b3 { left: 6px; bottom: 6px; border-right: 0; border-top: 0 } .hud2 .scr-stage .b4 { right: 6px; bottom: 6px; border-left: 0; border-top: 0 }
+.hud2 .scr-ov { position: absolute; left: 34px; right: 34px; top: 9px; display: flex; justify-content: space-between; font: 11px/1 var(--fm); letter-spacing: .12em; color: var(--acc2); pointer-events: none; text-shadow: 0 0 4px #000, 0 0 8px #000 }
+.hud2 .scr-ov .rec { color: var(--red) }
+.hud2 .scr-bar { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-top: 10px }
+.hud2 .scr-bar .scr-fullbtn { grid-column: 1 / -1 }
+.hud2 .scr-bar .scr-fullbtn span { font-size: 17px; line-height: 1 }
+.hud2 .scr-bar .btn[aria-pressed=true] { border-color: var(--acc); color: var(--acc2) }
+/* NÄYTTÖ 10.11.2026: canvas drawing, full-screen view, "⌨ Kirjoita" bubble */
+.hud2 .scr-view canvas { width: 100%; height: 100%; object-fit: contain; display: block; pointer-events: none }
+.hud2 .scr-view canvas.none { visibility: hidden }
+.hud2 .scr-ghost { display: grid; place-content: center; font: 600 13px/1 var(--fd); letter-spacing: .16em; color: var(--mut); text-transform: uppercase }
+.hud2 .scr-perus { font-style: normal; color: var(--amb) }
+.hud2 .scr-bubble { position: absolute; z-index: 4; transform: translateX(-50%); min-height: 48px; padding: 0 20px; border-radius: 24px; background: var(--acc); color: #00121c;
+  font: 700 16px/48px var(--fd); letter-spacing: .06em; white-space: nowrap; box-shadow: 0 0 0 2px rgba(0, 0, 0, .55), var(--glow); animation: scrPop .18s ease-out }
+@keyframes scrPop { from { opacity: 0; transform: translateX(-50%) scale(.85) } }
+.hud2.scr-full { z-index: 1000; background: #000 }
+.hud2.scr-full::before { display: none }
+.hud2.scr-full .scr-stage { position: absolute; inset: 0; width: auto; height: auto; aspect-ratio: auto; max-height: none; min-height: 0 }
+.hud2.scr-full .scr-view { inset: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px) }
+.hud2.scr-full .br { display: none }
+.hud2.scr-full .scr-ov { top: calc(env(safe-area-inset-top, 0px) + 6px); left: calc(env(safe-area-inset-left, 0px) + 10px); right: auto; gap: 10px; font-size: 10px; opacity: .8 }
+.hud2 .scr-tb { position: absolute; z-index: 5; top: calc(env(safe-area-inset-top, 0px) + 8px); right: calc(env(safe-area-inset-right, 0px) + 8px); display: flex; gap: 6px; padding: 6px;
+  background: rgba(3, 10, 21, .82); border: 1px solid var(--line2); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); max-width: calc(100vw - 16px); flex-wrap: wrap; justify-content: flex-end }
+.hud2.work .scr-tb, .hud2.work .scr-tkeys { background: rgba(8, 8, 8, .86) }
+.hud2 .scr-tb .btn { min-width: 44px; height: 40px; padding: 0 10px; font-size: 12px; letter-spacing: .06em }
+.hud2 .scr-tb .btn[aria-pressed=true] { border-color: var(--acc); color: var(--acc2) }
+.hud2 .scr-tkeys { position: absolute; z-index: 5; left: calc(env(safe-area-inset-left, 0px) + 8px); right: calc(env(safe-area-inset-right, 0px) + 8px); bottom: calc(env(safe-area-inset-bottom, 0px) + 8px);
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(50px, 1fr)); gap: 6px; padding: 6px; background: rgba(3, 10, 21, .82); border: 1px solid var(--line2) }
+.hud2 .scr-tkeys .btn { height: 40px; padding: 0 2px; font-size: 12px; text-transform: none; letter-spacing: .02em }
+.hud2 .scr-handle { position: absolute; z-index: 5; top: calc(env(safe-area-inset-top, 0px) + 6px); right: calc(env(safe-area-inset-right, 0px) + 6px); width: 44px; height: 34px;
+  border: 1px solid var(--line2); background: rgba(0, 0, 0, .45); color: var(--acc); font: 700 18px/1 var(--fd); opacity: .6 }
+.hud2 .scr-hint { position: absolute; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -50%); padding: 14px 20px; background: rgba(3, 10, 21, .9); border: 1px solid var(--acc);
+  font: 600 16px/1.2 var(--fd); letter-spacing: .14em; text-transform: uppercase; color: var(--acc2); pointer-events: none }
+/* Hidden field for the phone keyboard + the bar above it (outside .hud2: fixed to the page). */
+.jv-typein { position: fixed; top: 0; left: 0; width: 1px; height: 1px; padding: 0; border: 0; opacity: 0; font-size: 16px; pointer-events: none; background: transparent; color: transparent; caret-color: transparent }
+.jv-typebar { position: fixed; left: 0; right: 0; z-index: 2000; display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: #06182a; border-top: 1px solid rgba(150, 230, 255, .42);
+  color: #e4faff; font: 600 14px/1.2 'Chakra Petch', system-ui, sans-serif; -webkit-tap-highlight-color: transparent }
+.jv-typebar .jv-tt { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; letter-spacing: .04em }
+.jv-typebar button { min-width: 44px; min-height: 40px; padding: 0 10px; border: 1px solid rgba(150, 230, 255, .42); background: rgba(8, 26, 46, .8); color: inherit; font: inherit; border-radius: 0 }
+.jv-typebar .jv-done { background: #4fe3ff; color: #00121c; border-color: #4fe3ff; font-weight: 700 }
+.hud2 .scr-keys { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 10px }
+.hud2 .scr-keys .btn { padding: 0 2px; font-size: 11px; letter-spacing: .04em; text-transform: none }
+@media (max-width: 620px) {
+  .hud2 .scr-stage { max-height: none }
+  .hud2 .scr-keys { grid-template-columns: repeat(5, minmax(0, 1fr)) }
+  .hud2 .scr-bar .btn { font-size: 11px; padding: 0 4px; letter-spacing: .06em }
+}
+
+/* dock */
+.hud2 .dock { position: fixed; left: 0; right: 0; bottom: 0; z-index: 20; padding: 0 10px var(--sab); height: calc(var(--dock) + var(--sab));
+  display: flex; align-items: center; justify-content: center; gap: 4px;
+  background: linear-gradient(0deg, rgba(2, 8, 16, .95), rgba(2, 8, 16, .7) 70%, transparent); border-top: 1px solid var(--line) }
+.hud2.work .dock { background: linear-gradient(0deg, rgba(0, 0, 0, .96), rgba(0, 0, 0, .7) 70%, transparent) }
+.hud2 .dk { display: flex; align-items: center; gap: 2px; flex: 1; max-width: 560px; justify-content: space-around; position: relative }
+.hud2 .dk button { flex: 1; min-width: 0; height: 58px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; color: var(--mut); font: 600 11px/1 var(--fd); letter-spacing: .14em; text-transform: uppercase; position: relative; transition: color .25s }
+.hud2 .dk button svg { width: 21px; height: 21px }
+.hud2 .dk button[aria-current=true] { color: var(--acc2) }
+.hud2 .dk .ind { position: absolute; top: -1px; left: 0; height: 2px; background: var(--acc); box-shadow: 0 0 10px var(--acc); pointer-events: none; will-change: transform }
+.hud2.work .dk .ind { background: var(--red); box-shadow: 0 0 10px var(--red) }
+.hud2 .mic { width: 62px; height: 62px; flex: none; border-radius: 50%; display: grid; place-items: center; margin: 0 4px; position: relative;
+  background: radial-gradient(circle, rgba(79, 227, 255, .35), rgba(79, 227, 255, .05) 65%); border: 1px solid var(--acc); color: var(--acc2); box-shadow: var(--glow); transform: translateY(-10px) }
+.hud2 .mic::before { content: ""; position: absolute; inset: -7px; border-radius: 50%; border: 1px dashed var(--line2); animation: hx-spin 18s linear infinite }
+.hud2 .mic svg { width: 26px; height: 26px }
+.hud2 .mic.on::after { content: ""; position: absolute; inset: -12px; border-radius: 50%; border: 1px solid var(--acc); animation: hx-ring 1.2s ease-out infinite }
+.hud2.work .mic { border-color: var(--red); background: radial-gradient(circle, rgba(255, 61, 74, .4), rgba(255, 61, 74, .05) 65%) }
+.hud2.work .mic.on::after { border-color: var(--red) }
+
+/* chat sheet */
+.hud2 .sheet { position: fixed; inset: 0; z-index: 40; display: none }
+.hud2 .sheet.on { display: block }
+.hud2 .sheet .bd { position: absolute; inset: 0; background: rgba(0, 4, 10, .6) }
+.hud2 .sheet .box { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); width: min(100%, 760px); height: min(86vh, 900px); display: flex; flex-direction: column;
+  background: #04111f; border: 1px solid var(--line2); border-bottom: 0; padding: 14px 14px calc(8px + var(--sab)); animation: hx-up .35s cubic-bezier(.2, .8, .2, 1) }
+.hud2 .sheet .box--rail { width: min(100%, 1180px) }
+.hud2.work .sheet .box { background: #0a0a0a }
+.hud2 .sheet .ph { margin-bottom: 6px }
+.hud2 .sheet-body { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px }
+.hud2 .box--rail .sheet-body { grid-template-columns: minmax(0, 1fr) 360px }
+.hud2 .sheet-rail { min-height: 0; overflow: auto; border-left: 1px solid var(--line) }
+.hud2 .wave { display: flex; align-items: center; justify-content: center; gap: 3px; height: 26px; margin: 0 0 6px; opacity: .35 }
+.hud2 .wave.on, .hud2 .wave.busy { opacity: 1 }
+.hud2 .wave i { width: 3px; background: var(--acc); height: 100%; transform: scaleY(.2) }
+.hud2 .wave.on i { animation: hx-wv 1s ease-in-out infinite }
+.hud2 .wave.busy i { animation: hx-wv 2.4s ease-in-out infinite; opacity: .6 }
+
+/* overlays (old full views) */
+.hud2 .ovl { position: fixed; inset: 0; z-index: 45; background: color-mix(in srgb, var(--bg) 96%, transparent); display: flex; flex-direction: column; animation: hx-fade .25s ease-out }
+.hud2 .ovl-h { padding: calc(var(--sat) + 12px) 14px 10px; margin: 0; border-bottom: 1px solid var(--line) }
+.hud2 .ovl-body { flex: 1; min-height: 0; overflow: auto; display: flex; flex-direction: column }
+
+/* legacy views inside the HUD: same widgets, HUD accent and fonts */
+.hud2 .hx-legacy { --accent: var(--acc); --accent-soft: color-mix(in srgb, var(--acc) 16%, transparent); --accent-glow: var(--glow); --on-accent: #001018;
+  --edge: var(--line); --edge-2: var(--line2); --muted: var(--mut); --sans: var(--fd); --mono: var(--fm); --bg-2: rgba(0, 0, 0, .3); font-family: var(--fb) }
+.hud2.work .hx-legacy { --accent: #ff3d4a; --accent-soft: rgba(255, 61, 74, .16); --on-accent: #fff }
+.hud2 .pnl .hx-legacy .d-page { padding: 0; max-width: none; overflow: visible }
+.hud2 .pnl .hx-legacy .d-page h1, .hud2 .hx-legacy .d-lede { display: none }
+.hud2 .hx-legacy .d-page { flex: 1 }
+.hud2 .sheet .d-chat { min-height: 0; height: 100%; border-right: 0 }
+.hud2 .sheet .d-chathead { padding: 8px 4px }
+.hud2 .sheet .d-log { padding: 10px 4px }
+.hud2 .sheet .d-compose { margin: 8px 0 4px }
+
+/* toasts + fx */
+.hud2 .toasts { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(var(--dock) + var(--sab) + 10px); z-index: 50; display: grid; gap: 6px; width: min(92vw, 440px); pointer-events: none }
+.hud2 .toast { background: rgba(3, 14, 26, .94); border: 1px solid var(--line2); border-left: 3px solid var(--acc); padding: 9px 12px; display: grid; grid-template-columns: 1fr auto; gap: 2px 10px; animation: hx-tin .3s cubic-bezier(.2, .8, .2, 1) }
+.hud2.work .toast { background: rgba(10, 10, 10, .95); border-left-color: var(--red) }
+.hud2 .toast b { font: 600 15px/1.2 var(--fd); letter-spacing: .06em }
+.hud2 .toast code { grid-column: 1; font: 11px/1.3 var(--fm); color: var(--mut); white-space: nowrap; overflow: hidden; text-overflow: ellipsis }
+.hud2 .toast.warn code, .hud2 .toast.err code { white-space: normal }
+.hud2 .toast .ts { grid-row: 1/3; grid-column: 2; align-self: center; font: 10px var(--fm); letter-spacing: .12em; color: var(--amb) }
+.hud2 .toast.ok .ts { color: var(--ok) }
+.hud2 .toast.err { border-left-color: var(--red) } .hud2 .toast.err .ts { color: var(--red) }
+.hud2 .toast.out { animation: hx-tout .3s forwards }
+/* Sending / done: a small pill that does not cover the controls (the screen already shows the new state). */
+.hud2 .toast.mini { justify-self: center; padding: 4px 10px; grid-template-columns: auto auto; border-left-width: 2px }
+.hud2 .toast.mini b { font-size: 12px }
+.hud2 .toast.mini code { display: none }
+.hud2 .toast.mini .ts { grid-row: 1; font-size: 9px }
+.hud2 .pg-wait { font: 12px var(--fm); letter-spacing: .16em; color: var(--mut); padding: 40px 0; text-align: center }
+/* "päivitetty 12 s sitten" + latency panel */
+.hud2 .age { display: block; margin-top: 2px; font: 10px var(--fm); letter-spacing: .08em; color: var(--mut); opacity: .75 }
+.hud2 .lat { width: 100%; border-collapse: collapse; font: 11px/1.5 var(--fm); color: var(--mut) }
+.hud2 .lat td { padding: 2px 6px 2px 0; border-bottom: 1px solid var(--line); white-space: nowrap }
+.hud2 .lat td:first-child { width: 100%; white-space: normal; color: var(--acc2) }
+.hud2 .lat .slow { color: var(--amb) } .hud2 .lat .bad { color: var(--red) }
+.hud2 .fxl { position: fixed; inset: 0; z-index: 15; pointer-events: none; overflow: hidden }
+.hud2 .rip { position: absolute; width: 20px; height: 20px; margin: -10px; border-radius: 50%; border: 2px solid var(--c, var(--acc)); box-shadow: 0 0 30px var(--c, var(--acc)), inset 0 0 20px var(--c, var(--acc)); animation: hx-rip .8s ease-out forwards }
+.hud2 .rip--sm { animation: hx-rips .55s ease-out forwards }
+.hud2 .pt { position: absolute; width: 6px; height: 6px; margin: -3px; border-radius: 50%; animation: hx-pt 1.1s ease-out forwards }
+.hud2 .pt.heat { background: var(--hot); box-shadow: 0 0 10px var(--hot) }
+.hud2 .pt.cool { background: #e9f9ff; box-shadow: 0 0 10px var(--cold); width: 4px; height: 4px }
+.hud2 .tint { position: absolute; inset: 0; animation: hx-tint 1.1s ease-out forwards }
+.hud2 .tint.heat { background: radial-gradient(90% 70% at 50% 100%, rgba(255, 138, 61, .28), transparent 70%) }
+.hud2 .tint.cool { background: radial-gradient(90% 70% at 50% 0%, rgba(143, 216, 255, .3), transparent 70%) }
+.hud2 .beam { position: absolute; left: 50%; top: 0; width: 120vw; height: 100vh; margin-left: -60vw; background: conic-gradient(from 160deg at 50% 0%, transparent 0deg, rgba(200, 248, 255, .22) 20deg, transparent 40deg); animation: hx-tint 1s ease-out forwards }
+.hud2 .scanfx { position: absolute; left: 0; right: 0; top: 0; height: 120px; background: linear-gradient(180deg, transparent, rgba(79, 227, 255, .10) 70%, rgba(200, 248, 255, .6) 99%, transparent); animation: hx-sweep .7s cubic-bezier(.4, 0, .2, 1) forwards }
+.hud2.work .scanfx { background: linear-gradient(180deg, transparent, rgba(255, 255, 255, .06) 70%, rgba(255, 61, 74, .7) 99%, transparent) }
+.hud2 .swp { position: absolute; top: 0; bottom: 0; width: 40%; left: 0; transform: translateX(-100%); background: linear-gradient(90deg, transparent, rgba(79, 227, 255, .25), transparent); animation: hx-swp .9s ease-in-out forwards; pointer-events: none }
+.hud2 .crt { animation: hx-crt .5s ease-out }
+.hud2 .flash { position: absolute; inset: 0; background: #fff; animation: hx-tint .4s ease-out forwards; pointer-events: none }
+
+@keyframes hx-spin { to { transform: rotate(360deg) } }
+@keyframes hx-blink { 50% { opacity: 0 } }
+@keyframes hx-scan { to { transform: translateY(334%) } }
+@keyframes hx-ring { from { transform: scale(.9); opacity: 1 } to { transform: scale(1.25); opacity: 0 } }
+@keyframes hx-up { from { transform: translate(-50%, 40px); opacity: 0 } }
+@keyframes hx-fade { from { opacity: 0 } }
+@keyframes hx-wv { 0%, 100% { transform: scaleY(.15) } 50% { transform: scaleY(.9) } }
+@keyframes hx-tin { from { transform: translateY(10px); opacity: 0 } }
+@keyframes hx-tout { to { transform: translateY(6px); opacity: 0 } }
+@keyframes hx-rip { to { transform: scale(14); opacity: 0 } }
+@keyframes hx-rips { to { transform: scale(4); opacity: 0 } }
+@keyframes hx-pt { to { transform: translate(var(--dx), var(--dy)); opacity: 0 } }
+@keyframes hx-tint { from { opacity: 1 } to { opacity: 0 } }
+@keyframes hx-sweep { from { transform: translateY(-120px) } to { transform: translateY(100vh) } }
+@keyframes hx-swp { to { transform: translateX(250%) } }
+@keyframes hx-crt { 0% { transform: scaleY(.02); opacity: .4 } 60% { transform: scaleY(1.02); opacity: 1 } 100% { transform: none } }
+@keyframes hx-pin { from { opacity: 0; transform: translateY(16px) } 60% { opacity: 1 } to { opacity: 1; transform: none } }
+@keyframes hx-prog { from { transform: scaleX(0) } to { transform: scaleX(.92) } }
+
+/* ---------- desktop ---------- */
+@media (min-width: 980px) {
+  .hud2 { --dock: 76px }
+  .hud2 .page { padding-left: 24px; padding-right: 24px }
+  .hud2 .g-koti { grid-template-columns: 330px minmax(0, 1fr) 330px; grid-template-areas: "l hero r" "l gg r" }
+  .hud2 .g-koti .hero { grid-area: hero; height: calc(100vh - var(--top) - var(--dock) - 220px); min-height: 340px }
+  .hud2 .g-koti .gg { grid-area: gg }
+  .hud2 .g-koti .cl { grid-area: l } .hud2 .g-koti .cr { grid-area: r }
+  .hud2 .g-koti .tiles { grid-template-columns: minmax(0, 1fr) }
+  .hud2 .g-koti .tile { min-height: 56px }
+  .hud2 .g-ilma { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) }
+  .hud2 .g-media { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); grid-template-areas: "np rm" "sp rm" }
+  .hud2 .g-media .a1 { grid-area: np } .hud2 .g-media .a2 { grid-area: rm } .hud2 .g-media .a3 { grid-area: sp }
+  .hud2 .g-turva { grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) }
+  .hud2 .g-sys { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .hud2 .svcs { grid-template-columns: repeat(4, minmax(0, 1fr)) }
+  .hud2 .g-sys .wide, .hud2 .g-day .wide, .hud2 .g-meet .wide { grid-column: 1/-1 }
+  .hud2 .g-day { grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) }
+  .hud2 .tasks { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) }
+  .hud2 .g-leads { grid-template-columns: minmax(0, 1fr) minmax(0, 1.4fr) }
+  .hud2 .g-leads .pnl:first-child { grid-row: span 2 }
+  .hud2 .g-meet { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) }
+}
+@media (max-width: 979px) {
+  .hud2 .box--rail .sheet-body { grid-template-columns: minmax(0, 1fr) }
+  .hud2 .sheet-rail { display: none }
+}
+@media (max-width: 620px) {
+  .hud2 .ttl, .hud2 .link { display: none }
+  .hud2 .brand small { display: none }
+  .hud2 .clock { font-size: 13px }
+  .hud2 .modesw button { padding: 0 9px; font-size: 12px }
+  .hud2 .dk button span { font-size: 10px; letter-spacing: .06em }
+  .hud2 .camctl { grid-template-columns: 1fr }
+  .hud2 .seg button { font-size: 10.5px; letter-spacing: .02em; padding: 6px 2px }
+  .hud2 .mg .c b { font-size: 4.6vw } .hud2 .mg .c small { font-size: 7.5px; letter-spacing: .06em } .hud2 .mg .c em { font-size: 8px }
+  .hud2 .dk button { height: 54px }
+  .hud2 .mic { width: 56px; height: 56px }
+  .hud2 .joy { margin: 0 auto }
+  .hud2 .tline li { grid-template-columns: 48px 1fr }
+  .hud2 .tline li > .btn { grid-column: 2; justify-self: start }
+  .hud2 .apps { grid-template-columns: repeat(2, minmax(0, 1fr)) }
+  .hud2 .sheet .box { height: 92vh; padding: 10px 10px calc(6px + var(--sab)) }
+  .hud2 .tile .more { display: none }
+}
+/* touch: every target at least 44 px (small visuals get an invisible hit area) */
+@media (pointer: coarse) {
+  .hud2 .btn.sm, .hud2 .chip { min-height: 44px }
+  .hud2 .tog::before { content: ""; position: absolute; inset: -8px -4px }
+  .hud2 .diff { gap: 0 }
+  .hud2 .diff button { width: 30px; height: 44px; border: 0; position: relative }
+  .hud2 .diff button::after { content: ""; position: absolute; left: 4px; right: 4px; top: 11px; bottom: 11px; border: 1px solid var(--line2) }
+  .hud2 .diff button[aria-pressed=true] { background: none }
+  .hud2 .diff button[aria-pressed=true]::after { background: var(--red); border-color: var(--red) }
+}
+@media (max-width: 620px) {
+  .hud2 .tasks > :last-child:nth-child(odd) { grid-column: 1/-1; min-height: 64px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hud2 *, .hud2 *::before, .hud2 *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition: none !important }
+}
+.hud2.fx0 *, .hud2.fx0 *::before, .hud2.fx0 *::after { animation: none !important; transition: none !important }
